@@ -3,10 +3,9 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
+	"io/ioutil"
 	"log"
 	"net/url"
-	"os"
 
 	"github.com/ChimeraCoder/anaconda"
 )
@@ -19,25 +18,24 @@ func main() {
 	flag.IntVar(&length, "length", 80, "maximum tweet length")
 	flag.Parse()
 
-	keys, err := os.Open("keys.json")
+	keys, err := ioutil.ReadFile("keys.json")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("error reading keys file")
 	}
-	defer keys.Close()
 
-	j := struct {
+	jKeys := struct {
 		ConsumerKey       string
 		ConsumerSecret    string
 		AccessToken       string
 		AccessTokenSecret string
 	}{}
-	if err := json.NewDecoder(keys).Decode(&j); err != nil {
-		log.Fatal(err)
+	if err = json.Unmarshal(keys, &jKeys); err != nil {
+		log.Fatalf("error unmarshalling keys.json: %s", err)
 	}
 
-	anaconda.SetConsumerKey(j.ConsumerKey)
-	anaconda.SetConsumerSecret(j.ConsumerSecret)
-	api := anaconda.NewTwitterApi(j.AccessToken, j.AccessTokenSecret)
+	anaconda.SetConsumerKey(jKeys.ConsumerKey)
+	anaconda.SetConsumerSecret(jKeys.ConsumerSecret)
+	api := anaconda.NewTwitterApi(jKeys.AccessToken, jKeys.AccessTokenSecret)
 
 	v := url.Values{}
 	v.Set("count", count)
@@ -52,7 +50,7 @@ func main() {
 			s = s[:length] + "..."
 		}
 
-		fmt.Printf("%s: %s\n", tweet.User.ScreenName, s)
-		//fmt.Printf("\n[%v]\n", tweet)
+		log.Printf("%s: %s\n", tweet.User.ScreenName, s)
+		//log.Printf("\n[%v]\n", tweet)
 	}
 }
