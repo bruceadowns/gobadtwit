@@ -2,3 +2,6 @@ gobadtwit
 .idea/
 .vscode/
 .git/
+
+dump.rdb
+keys.json
